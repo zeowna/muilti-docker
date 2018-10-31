@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t zelucaspiprecipes/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run zelucaspiprecipes/react-test npm test -- --coverage
+
+after_sucess:  
+  - docker build -t zelucaspiprecipes/multi-client ./client
+  - docker build -t zelucaspiprecipes/multi-ngnix ./ngnix
+  - docker build -t zelucaspiprecipes/multi-server ./server
+  - docker build -t zelucaspiprecipes/multi-worker ./worker
+  # Login into ti the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push then into docker hub
+  - docker push zelucaspiprecipes/multi-client
+  - docker push zelucaspiprecipes/multi-ngnix
+  - docker push zelucaspiprecipes/multi-server
+  - docker push zelucaspiprecipes/multi-worker
